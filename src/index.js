@@ -32,7 +32,7 @@ var map = L.map('map', {
 }).setView(mergedOptions.center, mergedOptions.zoom);
 
 // Pass basemap layers
-mapLayer = mapLayer.reduce(function(title, layer) {
+mapLayer = mapLayer.reduce(function (title, layer) {
   title[layer.label] = L.tileLayer(layer.tileLayer, {
     id: layer.label
   });
@@ -48,20 +48,20 @@ L.control.scale().addTo(map);
 
 /* Store User preferences */
 // store baselayer changes
-map.on('baselayerchange', function(e) {
+map.on('baselayerchange', function (e) {
   ls.set('layer', e.name);
 });
 // store overlay add or remove
-map.on('overlayadd', function(e) {
+map.on('overlayadd', function (e) {
   ls.set('getOverlay', true);
 });
-map.on('overlayremove', function(e) {
+map.on('overlayremove', function (e) {
   ls.set('getOverlay', false);
 });
 
 /* OSRM setup */
 var ReversablePlan = L.Routing.Plan.extend({
-  createGeocoders: function() {
+  createGeocoders: function () {
     var container = L.Routing.Plan.prototype.createGeocoders.call(this);
     return container;
   }
@@ -96,13 +96,13 @@ function makeIcon(i, n) {
 var plan = new ReversablePlan([], {
   geocoder: Geocoder.nominatim(),
   routeWhileDragging: true,
-  createMarker: function(i, wp, n) {
+  createMarker: function (i, wp, n) {
     var options = {
       draggable: this.draggableWaypoints,
       icon: makeIcon(i, n)
     };
     var marker = L.marker(wp.latLng, options);
-    marker.on('click', function() {
+    marker.on('click', function () {
       plan.spliceWaypoints(i, 1);
     });
     return marker;
@@ -115,7 +115,7 @@ var plan = new ReversablePlan([], {
   reverseWaypoints: true,
   dragStyles: options.lrm.dragStyles,
   geocodersClassName: options.lrm.geocodersClassName,
-  geocoderPlaceholder: function(i, n) {
+  geocoderPlaceholder: function (i, n) {
     var startend = [local['Start - press enter to drop marker'], local['End - press enter to drop marker']];
     var via = [local['Via point - press enter to drop marker']];
     if (i === 0) {
@@ -145,20 +145,21 @@ var controlOptions = {
   showAlternatives: options.lrm.showAlternatives,
   units: mergedOptions.units,
   serviceUrl: leafletOptions.services[0].path,
+  routingOptions: leafletOptions.services[0].routingOptions,
   useZoomParameter: options.lrm.useZoomParameter,
   routeDragInterval: options.lrm.routeDragInterval,
   collapsible: options.lrm.collapsible
 };
 var router = (new L.Routing.OSRMv1(controlOptions));
 router._convertRouteOriginal = router._convertRoute;
-router._convertRoute = function(responseRoute) {
+router._convertRoute = function (responseRoute) {
   // monkey-patch L.Routing.OSRMv1 until it's easier to overwrite with a hook
   var resp = this._convertRouteOriginal(responseRoute);
 
   if (resp.instructions && resp.instructions.length) {
     var i = 0;
-    responseRoute.legs.forEach(function(leg) {
-      leg.steps.forEach(function(step) {
+    responseRoute.legs.forEach(function (leg) {
+      leg.steps.forEach(function (step) {
         // abusing the text property to save the original osrm step
         // for later use in the itnerary builder
         resp.instructions[i].text = step;
@@ -175,18 +176,18 @@ var lrmControl = L.Routing.control(Object.assign(controlOptions, {
 var toolsControl = tools.control(localization.get(mergedOptions.language), localization.getLanguages(), options.tools).addTo(map);
 var state = state(map, lrmControl, toolsControl, mergedOptions);
 
-plan.on('waypointgeocoded', function(e) {
-  if (plan._waypoints.filter(function(wp) { return !!wp.latLng; }).length < 2) {
+plan.on('waypointgeocoded', function (e) {
+  if (plan._waypoints.filter(function (wp) { return !!wp.latLng; }).length < 2) {
     map.panTo(e.waypoint.latLng);
   }
 });
 
 // add onClick event
-map.on('click', function (e){
+map.on('click', function (e) {
   addWaypoint(e.latlng);
 });
 function addWaypoint(waypoint) {
-  var length = lrmControl.getWaypoints().filter(function(pnt) {
+  var length = lrmControl.getWaypoints().filter(function (pnt) {
     return pnt.latLng;
   });
   length = length.length;
@@ -199,7 +200,7 @@ function addWaypoint(waypoint) {
 }
 
 // User selected routes
-lrmControl.on('alternateChosen', function(e) {
+lrmControl.on('alternateChosen', function (e) {
   var directions = document.querySelectorAll('.leaflet-routing-alt');
   if (directions[0].style.display != 'none') {
     directions[0].style.display = 'none';
@@ -211,7 +212,7 @@ lrmControl.on('alternateChosen', function(e) {
 });
 
 // Route export
-lrmControl.on('routeselected', function(e) {
+lrmControl.on('routeselected', function (e) {
   var route = e.route || {};
   var routeGeoJSON = {
     type: 'Feature',
@@ -236,9 +237,9 @@ lrmControl.on('routeselected', function(e) {
   };
   toolsControl.setRouteGeoJSON(routeGeoJSON);
 });
-plan.on('waypointschanged', function(e) {
+plan.on('waypointschanged', function (e) {
   if (!e.waypoints ||
-      e.waypoints.filter(function(wp) { return !wp.latLng; }).length > 0) {
+    e.waypoints.filter(function (wp) { return !wp.latLng; }).length > 0) {
     toolsControl.setRouteGeoJSON(null);
   }
 });
@@ -249,10 +250,10 @@ L.control.locate({
   remainActive: false,
   keepCurrentZoomLevel: true,
   stopFollowingOnDrag: false,
-  onLocationError: function(err) {
+  onLocationError: function (err) {
     alert(err.message)
   },
-  onLocationOutsideMapBounds: function(context) {
+  onLocationOutsideMapBounds: function (context) {
     alert(context.options.strings.outsideMapBoundsMsg);
   },
   showPopup: false,
